@@ -1,12 +1,11 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="表名称" prop="tableName">
         <el-input
           v-model="queryParams.tableName"
           placeholder="请输入表名称"
           clearable
-          style="width: 200px"
           @keyup.enter="handleQuery"
         />
       </el-form-item>
@@ -15,7 +14,6 @@
           v-model="queryParams.tableComment"
           placeholder="请输入表描述"
           clearable
-          style="width: 200px"
           @keyup.enter="handleQuery"
         />
       </el-form-item>
@@ -146,6 +144,14 @@
               v-hasPermi="['tool:gen:code']"
             ></el-button>
           </el-tooltip>
+          <el-tooltip content="插入代码" placement="top">
+            <el-button
+              type="text"
+              icon="Download"
+              @click="handleGenTable(scope.row, true)"
+              v-hasPermi="['tool:gen:code']"
+            >直接写入到项目</el-button>
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -236,7 +242,7 @@ function handleQuery() {
   getList();
 }
 /** 生成代码操作 */
-function handleGenTable(row) {
+function handleGenTable(row, isInsertproject=false) {
   const tbNames = row.tableName || tableNames.value;
   if (tbNames == "") {
     proxy.$modal.msgError("请选择要生成的数据");
@@ -247,7 +253,11 @@ function handleGenTable(row) {
       proxy.$modal.msgSuccess("成功生成到自定义路径：" + row.genPath);
     });
   } else {
-    proxy.$download.zip("/tool/gen/batchGenCode?tables=" + tbNames, "ruoyi");
+    if (isInsertproject) {
+      proxy.$download.zip(`/tool/gen/batchGenCodewrite?tables=${tbNames}`, "ruoyi");
+    } else {
+      proxy.$download.zip("/tool/gen/batchGenCode?tables=" + tbNames, "ruoyi");
+    }
   }
 }
 /** 同步数据库操作 */
